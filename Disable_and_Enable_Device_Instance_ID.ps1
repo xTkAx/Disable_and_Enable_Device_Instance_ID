@@ -21,7 +21,7 @@ Param
 
 		[Switch] $Confirm				= $false,		# Switch to always select "Y" at prompts".
 
-		[Switch] $NoExit				= $false,		# Switch to prevent program quitting after command line -Query start start
+		[Switch] $NoExit				= $false,		# Switch to prevent script quitting after command line -Query start start
 
 		[Switch] $Help					= $false		# Switch to display Help message.
 	)
@@ -44,32 +44,31 @@ Purpose:
 Usage:
 	**Requires Administrator Privileges**
 
-	There are three ways to use this program:
+	There are three ways to use this script:
 
 	1) Run the script as is. eg:
 
 		.\Disable_and_Enable_Device_Instance_ID.ps1
 
 			-It will scan for all Device Instance ID''s.
-			-It will present the user with a numerical list.
-			-It will request the user enter a # or Device Instance ID, or a search term.
-			-It will then search and/or verify the request and ask the user to proceed.
-			-When user proceeds to act on a target device it will be disabled and re-enabled.
-			-The program will then loop until the user exits or enters Ctrl+C
+			-It will present the user with a numerical list of devices.
+			-It will prompt the user enter a # or Device Instance ID, a search term, or quit.
+			-It will then verify user input (Quit, #, InstanceID), or search again.
+			-When user selects a single target device to act upon, the device will be disabled and re-enabled.
+			-The script will then loop until the user exits with ''Quit'' or Ctrl+C.
 
 
 	2) Run the script with the -Query <Device Instance ID> switch. eg:
 
-		.\Disable_and_Enable_Device_Instance_ID.ps1 -Query HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803
+		.\Disable_and_Enable_Device_Instance_ID.ps1 -Query "HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803"
 
-		.\Disable_and_Enable_Device_Instance_ID.ps1 HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803
+		.\Disable_and_Enable_Device_Instance_ID.ps1 ""HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803"
 
 			-It will scan all Device Instance ID''s for the one specified.
-			-If no device Instance ID is found, the program will exit.
-			-If device Instance Id is found, it will request the user to proceed.
-			-When user proceeds to act on a target device it will be disabled and re-enabled.
-			-The program will then exit.
-			-Program will continue if the -NoExit switch is used.
+			-If no device Instance ID is found, the script will note this and exit.
+			-If device Instance Id is found, it will prompt the user to proceed.
+			-When user selects a single target device to act upon, the device will be disabled and re-enabled.
+			-The script will then exit, unless the ''-NoExit'' switch was also used (See: -NoExit).
 
 
 	3) Run the script with the -Query <any search string> switch. eg:
@@ -79,33 +78,36 @@ Usage:
 		.\Disable_and_Enable_Device_Instance_ID.ps1 "Touch Screen"
 
 			-It will scan all Device fields for the query.
-			-If no matching Devices are found, the program will exit.
-			-If any matching devices are found, it will present the user with a numerical list if more than one.
-			-If more than one it will show a list to request the user enter a # or Device Instance ID, or a search term.
-			-It will then search and/or verify the request and ask the user to proceed.
-			-When user proceeds to act on a target device it will be disabled and re-enabled.
-			-The program will then exit.
-			-Program will continue if the -NoExit switch is used.
+			-If no matching Devices are found, the script will exit.
+			-If any matching devices are found:
+				-If 1 device is found, it will prompt the user to work with that device.
+				-If more than 1 device is found it will present a numerical list and request the user enter
+				a #, Device Instance ID, another search term, or ''Quit''.
+			-When user selects a single target device to act upon, the device will be disabled and re-enabled.
+			-The script will then exit, unless the ''-NoExit'' switch was also used (See: -NoExit).
 
 
  Optional Parameters:
 
 	-Query			<String>
 		The String of the InstanceID, or a search term you wish to look for.
+		All searches should be enclosed in double quotations, "like this".
 		a) if exact existing InstanceID: the user will be prompted to disable and re-enable.
-		b) If no exact existing InstanceID is found, the search is expanded to all fields,
-		and presents the user with either a single selection to decide on (if only 1 found),
-		or list of devices to select.
+		b) If no exact existing InstanceID is found, the search is expanded to a case-insensitive search of fields,
+		and presents the user with either a single selection to decide on, or list of devices to select one from.
 
 	-WaitOnDisable	<Int32>
-		The time to wait after disabling and before re-enabling.
-		Default: 3 (second).
+		The time to wait after disabling and before the device is re-enabled.
+		Default: 3 (Seconds).
 
 	-Confirm		[Switch]
-		Always Selects Yes, or presses Enter at a user prompt
+		Always selects yes, or presses Enter at a user prompt, for unassisted execution.
+		Works best with an exact InstanceID, or manual use.
+		NOTE: If planning to use a search term for unassisted execution, be aware that if more
+		than one device is identified, it will present a list requiring user input to select.
 
 	-NoExit			[Switch]
-		When the -Query param is used, this will continue into the program instead of exiting.
+		When the -Query param is used, this will continue into the script instead of exiting.
 
 	-Help			[Switch]
 		Display this help screen.
@@ -115,7 +117,7 @@ Usage:
 	.\Disable_and_Enable_Device_Instance_ID.ps1
 	.\Disable_and_Enable_Device_Instance_ID.ps1 -WaitOnDisable 15
 	.\Disable_and_Enable_Device_Instance_ID.ps1 -Query "HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803" -WaitOnDisable 5
-	.\Disable_and_Enable_Device_Instance_ID.ps1 HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803 25
+	.\Disable_and_Enable_Device_Instance_ID.ps1 "HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803" 25
 	.\Disable_and_Enable_Device_Instance_ID.ps1 -Query "HID\VID_2746&PID_106J&Col08\7&1ne36495&0&0803" -Confirm -WaitOnDisable 0
 
 '
@@ -346,7 +348,7 @@ Function WorkWithDevicesList ([Collections.Generic.List[Device]] $Devices)
 	#Handle new $Global:UserQuery
 	if ($Global:UserQuery -eq "Quit")
 	{
-		$Global:RunProgram = $False
+		$Global:RunScript = $False
 
 		return
 	}
@@ -468,7 +470,7 @@ Function DisableAndRenableInstanceId([Device] $TargetDevice)
 
 #region ---> Main Program <---
 
-[bool]								$Global:RunProgram		= $True
+[bool]								$Global:RunScript		= $True
 
 [bool]								$Global:QueryParamUsed	= $(if($Query.Trim() -ne ""){$True}else{$False})
 
@@ -480,7 +482,7 @@ Function DisableAndRenableInstanceId([Device] $TargetDevice)
 
 [Collections.Generic.List[Device]]	$Global:SearchedDevices	= $Null
 
-while($Global:RunProgram)
+while($Global:RunScript)
 {
 	[String[]]							$AllEnumDevices		= GetAllEnumDevices
 	[Collections.Generic.List[Device]]	$Global:EnumDevices	= ParseAndSortAllEnumDevicesData $AllEnumDevices
@@ -552,7 +554,7 @@ while($Global:RunProgram)
 		}
 		else
 		{
-			$Global:RunProgram = $False
+			$Global:RunScript = $False
 		}
 	}
 }
