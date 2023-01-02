@@ -1,11 +1,12 @@
-<#Requires -RunAsAdministrator#>
+#Requires -RunAsAdministrator
 #Requires -Version 3
+
 <#
-	Disable_and_Enable_Device_by_Instance_ID.ps1
+	Disable_and_Enable_Device_Instance_ID.ps1
 	-----------------------------------------
 
 	This script will allow the user to quickly disable and enable a pnputil device Instance ID.
-		*See if($Help) for more
+		*See if($Help) [Line 34] for more detail, or run the script with the -Help switch
 #>
 
 #region Params
@@ -120,7 +121,7 @@ Usage:
 '
 	return $msg
 }
-if($WaitOnDisable -le 0){$WaitOnDisable = 1} #Default to 1.
+if($WaitOnDisable -le 0){$WaitOnDisable = 1} #Default to at least 1s to give the computer time to finish disabling.
 
 #endregion Handle Params
 
@@ -293,7 +294,6 @@ Function SearchDeviceListFieldsWithQuery([Collections.Generic.List[Device]] $Dev
 }
 
 
-
 Function WorkWithDevicesList ([Collections.Generic.List[Device]] $Devices)
 {
 	[int] $DescriptionColumnWidth = 0;
@@ -403,7 +403,7 @@ Function WorkWithSelectedDevice ([Device] $TargetDevice)
 }
 
 
-<# This function is the one that disables and re-enables the targetdevice #> #Done
+<# This function is the one that disables and re-enables the targetdevice #>
 Function DisableAndRenableInstanceId([Device] $TargetDevice)
 {
 	if ($TargetDevice.Status -eq "Started")
@@ -463,9 +463,7 @@ Function DisableAndRenableInstanceId([Device] $TargetDevice)
 	}
 }
 
-
 #endregion Functions
-
 
 
 #region ---> Main Program <---
@@ -559,5 +557,4 @@ while($Global:RunProgram)
 	}
 }
 
-
-#endregion Main Program
+#endregion ---> Main Program <---
